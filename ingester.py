@@ -17,12 +17,17 @@ def ingest(accession, disease):
     # import IPython;IPython.embed()
     print("geodir is {}".format(geodir.name))
     gse = GEOparse.get_GEO(geo=accession, destdir=geodir.name)
-    clinical_collection = "{}_geo".format(disease)
+    clinical_collection_name = "{}_geo".format(disease)
     metadata = gse.metadata
     write_client = pymongo.MongoClient(os.getenv('MONGO_WRITE_URL'))
     write_db = write_client.some_db # TODO FIXME
-    write_coll = write_db[clinical_collection]
-    write_coll.insert_one(metadata)
+    clinical_collection = write_db[clinical_collection_name]
+    clinical_collection.insert_one(metadata)
+    # FIXME this doesn't seem right:
+    for key, value in gse.gsms.items():
+        clinical_collection.insert_one(value.metadata)
+    mol_collection_name = "geo_{}_{}".format(disease, accession)
+    mol_collection = write_db[mol_collection_name]
 
     import IPython;IPython.embed()
 
