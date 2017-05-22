@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# How to use:
+# Copy setup_env.sh.example to setup_env.sh
+# Edit setup_env.sh to contain the actual mongo URL.
+# Source setup_env.sh script with:
+# source ./setup_env.sh
+# You now have $MONGO_URL defined in your environment
+# So you can run/test/develop this code or start the
+# Docker container.
+
+# If you are developing outside the Hutch, you need an
+# ssh tunnel. Set it up like this:
+# ssh -f -N -L27017:oncoscape-dev-db1.sttrcancer.io:27017 $USER@snail.fhcrc.org
+# And set your MONGO_URL (below) to
+# mongodb://username:password@localhost:27017/tcga?authSource=admin
+
+
+export MONGO_URL="CHANGE_THIS"
+export MONGO_READ_URL="mongodb://localhost"
