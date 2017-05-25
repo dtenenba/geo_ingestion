@@ -20,6 +20,8 @@ def ingest(accession, disease):
     print("geodir is {}".format(geodir.name))
     print("Downloading data set {} from GEO....".format(accession),
           flush=True)
+    # silent=True has no effect,
+    # see https://github.com/guma44/GEOparse/issues/19
     gse = GEOparse.get_GEO(geo=accession, destdir=geodir.name, silent=True)
     clinical_collection_name = "{}_geo".format(disease)
     metadata = gse.metadata
