@@ -16,5 +16,5 @@
 # mongodb://username:password@localhost:27017/tcga?authSource=admin
 
 
-export MONGO_WRITE_URL="CHANGE_THIS"
-export MONGO_READ_URL="mongodb://localhost"
+export MONGO_WRITE_URL="mongodb://localhost"
+export MONGO_READ_URL="CHANGE_THIS"
