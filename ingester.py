@@ -1,3 +1,9 @@
+"""
+/The GEO datasets we are initially looking to ingest are:
+GSE12102, GSE16102, GSE20196, GSE21050, GSE21122, GSE23980, GSE30929, GSE648
+These all go with the 'sarc' disease (sarcoma).
+"""
+
 import os
 import sys
 import tempfile
@@ -122,9 +128,11 @@ def ingest(accession, disease):
     gse_df['hugo']  = hugo
 
     # find duplicates:
-    dupes_series = gse_df.duplicated('hugo') # by default gets unique ones
+    dupes_series = gse_df.duplicated('hugo')
     which = dupes_series[dupes_series] # only those that are True
-    dupes = which.index.tolist()
+    temp = which.index.tolist()
+    # get unique values (but make it a list, not a set):
+    dupes = list(set(gse_df.loc[temp, "hugo"].tolist()))
 
     # define a function to call once for each duplicate:
     def find_largest_variance(gene_symbol):
@@ -141,11 +149,31 @@ def ingest(accession, disease):
 
     keep_probe = pd.Series(index=dupes)
 
+
+    # this seems to take a while
+    print("Finding largest variance for each of {} dupes...".format(len(dupes)),
+          flush=True)
+    for idx, dupe in enumerate(dupes):
+        if idx % 100 == 0:
+            print("{}           \r".format(idx), end="", flush="")
+        keep_probe[dupe] = find_largest_variance(dupe)
+    print("Done")
+
+    diff =list( set(hugo) - set(dupes))
+    which = gse_df.hugo.isin(diff)
+    gene_gse = gse_df[which]
+    # append is like rbind in R:
+    gene_gse = gene_gse.append(gse_df.loc[keep_probe,:])
+    gene_gse.index = gene_gse.hugo
+    del gene_gse['hugo'] # remove hugo column
+
+    mol_collection_name = "geo_{}_{}_gene".format(disease, accession)
+    mol_collection = write_db[mol_collection_name]
+
+    # TODO now insert data from gene_gse into mol_collection
+
     import IPython;IPython.embed()
 
-
-    for dupe in dupes:
-        keep_probe[dupe] = find_largest_variance(dupe)
 
 
 
