@@ -35,7 +35,6 @@ def get_data_frame(gse):
     # create empty data frame with appropriate row & col names
     gse_df = pd.DataFrame(index=rownames, columns=colnames)
     # populate data frame one column at a time
-    from collections import defaultdict
     for samplekey, sample in gse.gsms.items():
         column = sample.table['VALUE'].tolist()
         print("samplekey is {}, len is {}, columns are {}".format(samplekey, len(column), sample.table.columns))
@@ -61,10 +60,9 @@ def ingest(accession, disease, force): # pylint: disable=too-many-locals
     Args:
         accession: GEO accession number
         disease: Oncoscape disease name
-
+        force: Whether to overwrite existing collections, or exit
     """
     geodir = tempfile.TemporaryDirectory()
-    # import IPython;IPython.embed()
     print("geodir is {}".format(geodir.name))
     print("Downloading data set {} from GEO....".format(accession),
           flush=True)
@@ -107,7 +105,6 @@ def ingest(accession, disease, force): # pylint: disable=too-many-locals
     print("                              \r", flush=True)
     print("Done.", flush=True)
     print("here we go")
-    # import IPython;IPython.embed()
     mol_collection.insert_many(docs)
     print("really done")
 
@@ -217,8 +214,9 @@ def ingest(accession, disease, force): # pylint: disable=too-many-locals
         row = gene_gse.iloc[idx, :]
         data = {}
         for rowidx, cell in enumerate(row):
-            data[gene_gse.index[rowidx]] = cell
-        doc = dict(id=gene_symbol, data=data, min=min(row), max=max(row))
+            data[gene_gse.index[rowidx]] = float(cell)
+        doc = dict(id=gene_symbol, data=data, min=float(min(row)),
+                   max=float(max(row)))
         docs.append(doc)
 
     print("Done processing.", flush=True)
