@@ -8,13 +8,13 @@ import sys
 
 import pymongo
 
-url = os.getenv('MONGO_WRITE_URL')
+URL = os.getenv('MONGO_WRITE_URL')
 
-if url is None:
+if URL is None:
     print("MONGO_WRITE_URL is not set.")
     sys.exit(1)
 
-client = pymongo.MongoClient(url)
+CLIENT = pymongo.MongoClient(URL)
 # FIXME database name will change at some point
-result = client.some_db.command("dropDatabase")
-print(result)
+RESULT = CLIENT.some_db.command("dropDatabase")
+print(RESULT)
