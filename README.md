@@ -93,4 +93,4 @@ the above example, this command will create the following collections:
 * `sarc_geo`  - Clinical collection (this collection name is not correct and will be fixed soon)
 * `geo_sarc_GSE12102_gene` - molecular collection indexed by gene symbol
 * `sarc_geo_GSE12102` - molecular collection indexed by probe ID (should probably be consistent with above)
-* `geo_GPL570` (the platform used by this data set)
+* `geo_GPL570` the platform used by this data set
