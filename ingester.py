@@ -156,7 +156,6 @@ def ingest(accession, disease, force): # pylint: disable=too-many-locals
     hugo = [str(x).split()[0] for x in hugo]
 
     # now add the column:
-    import IPython;IPython.embed()
     gse_df['hugo'] = hugo
 
     # find duplicates:
