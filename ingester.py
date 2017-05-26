@@ -37,7 +37,6 @@ def get_data_frame(gse):
     # populate data frame one column at a time
     for samplekey, sample in gse.gsms.items():
         column = sample.table['VALUE'].tolist()
-        print("samplekey is {}, len is {}, columns are {}".format(samplekey, len(column), sample.table.columns))
         gse_df[samplekey] = column
     return gse_df
 
