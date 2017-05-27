@@ -57,6 +57,12 @@ instance running on your local system, and you
 have a `mongod` daemon running, you don't need
 to edit the file further.
 
+Then source the file with the following command:
+
+```bash
+. setup_env.sh
+```
+
 **NOTE**: The code currently writes to a database called `some_db`. This will soon
 be changed to the correct database name.
 
