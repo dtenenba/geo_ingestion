@@ -44,6 +44,7 @@ class Wrapper(object):
         self.gpl = gpls[self.gpl_idx]
 
     def gsms(self):
+        """Gets each sample associated with a specific platform."""
         hsh = {}
         for key, value in self._wrapped_obj.gsms.items():
             if value.metadata['platform_id'][0] == self.gpl:
@@ -51,6 +52,7 @@ class Wrapper(object):
         return hsh
 
     def get_molecular_collection_name(self, probe_centric=True):
+        """Gets the molecular collection name"""
         accession = self._wrapped_obj.name
         if len(self._wrapped_obj.gpls) == 1:
             if probe_centric:
@@ -73,7 +75,11 @@ class Wrapper(object):
         # proxy to the wrapped object
         return getattr(self._wrapped_obj, attr)
 
-class GEOSeries:
+class GEOSeries: # pylint: disable=too-few-public-methods
+    """
+    Wraps a GSE object and allows you to iterate over each
+    set of samples associated with a specific platform.
+    """
 
     def __init__(self, gse, disease):
         self.current = 0
@@ -89,6 +95,7 @@ class GEOSeries:
 
     @property
     def series(self):
+        """Return the number of series (different platforms)"""
         return len(self.gse.gpls)
 
     def __iter__(self):
@@ -132,6 +139,7 @@ def delete_or_exit(db_, collection_name, force):
             sys.exit(1)
 
 def get_from_geo(accession, disease):
+    """Downloads a dataset from GEO."""
     geodir = tempfile.TemporaryDirectory()
     print("geodir is {}".format(geodir.name))
     print("Downloading data set {} from GEO....".format(accession),
@@ -141,7 +149,8 @@ def get_from_geo(accession, disease):
     raw_gse = GEOparse.get_GEO(geo=accession, destdir=geodir.name, silent=True)
     return GEOSeries(raw_gse, disease)
 
-def write_metadata_to_clinical_collection(gse, disease, write_db):
+def write_metadata_to_clinical_coll(gse, disease, write_db):
+    """Write metadata to clinical collection"""
     clinical_collection_name = "{}_geo_meta".format(disease)
     metadata = gse.metadata
     clinical_collection = write_db[clinical_collection_name]
@@ -160,11 +169,10 @@ def write_metadata_to_clinical_collection(gse, disease, write_db):
             clinical_collection.insert_one(value.metadata)
 
 def write_molecular_collection(gse, gse_df, write_db, force, probe_centric=True):
+    """Write to molecular collection"""
     mol_collection_name = gse.get_molecular_collection_name(probe_centric)
     delete_or_exit(write_db, mol_collection_name, force)
-    mol_collection = write_db[mol_collection_name]
-    key0 = list(gse.gsms().keys())[0]
-    numrows = len(gse.gsms()[key0].table)
+    numrows = len(gse.gsms()[list(gse.gsms().keys())[0]].table)
     docs = []
     print("Inserting into {}....".format(mol_collection_name), flush=True)
     for idx in range(len(gse_df.index)):
@@ -181,11 +189,12 @@ def write_molecular_collection(gse, gse_df, write_db, force, probe_centric=True)
     print("                              \r", flush=True)
     print("Done.", flush=True)
     print("here we go")
-    mol_collection.insert_many(docs)
+    write_db[mol_collection_name].insert_many(docs)
     print("really done")
 
 
 def write_gpl_collection(gse, write_db):
+    """Write to GPL collection"""
     gpl = gse.gpl
     gpl_collection_name = "geo_{}".format(gpl)
     if not gpl_collection_name in write_db.collection_names():
@@ -216,6 +225,7 @@ def write_gpl_collection(gse, write_db):
 
 
 def get_gpl(gse):
+    """Return platform identifier"""
     return gse.gpls[gse.gpl]
 
 def trim_gpl_table(gse, gse_df):
@@ -233,7 +243,13 @@ def trim_gpl_table(gse, gse_df):
     return gpl_table[~gpl_table.ID.isin(rows_to_drop)]
 
 
-def remove_duplicates(gse, gse_df, gpl_table):
+def remove_duplicates(gse_df, gpl_table):
+    """
+    When working with gene-centric data there may be
+    multiple rows with the same gene symbol. Remove
+    duplicates by only picking the row with the
+    largest variance.
+    """
     # add a hugo column to gse_df
     hugo = gpl_table['Gene Symbol']
 
@@ -291,7 +307,7 @@ def remove_duplicates(gse, gse_df, gpl_table):
 
 
 
-def ingest(accession, disease, force): # pylint: disable=too-many-locals
+def ingest(accession, disease, force):
     """
     Ingest data into MongoDb.
     Args:
@@ -305,7 +321,7 @@ def ingest(accession, disease, force): # pylint: disable=too-many-locals
     write_client = pymongo.MongoClient(os.getenv('MONGO_WRITE_URL'))
     write_db = write_client.some_db # TODO FIXME database name
 
-    write_metadata_to_clinical_collection(geoseries, disease, write_db)
+    write_metadata_to_clinical_coll(geoseries, disease, write_db)
 
     for idx, gse in enumerate(geoseries):
         gpl = gse.gpl
@@ -317,7 +333,7 @@ def ingest(accession, disease, force): # pylint: disable=too-many-locals
         write_gpl_collection(gse, write_db)
 
         gpl_table = trim_gpl_table(gse, gse_df)
-        gene_gse = remove_duplicates(gse, gse_df, gpl_table)
+        gene_gse = remove_duplicates(gse_df, gpl_table)
 
         write_molecular_collection(gse, gene_gse, write_db, force, False)
 
@@ -325,34 +341,6 @@ def ingest(accession, disease, force): # pylint: disable=too-many-locals
 
 
 
-    # mol_collection_name = "{}_geo_{}_gene".format(disease, accession)
-    # delete_or_exit(write_db, mol_collection_name, force)
-    #
-    # mol_collection = write_db[mol_collection_name]
-    #
-    # # TODO now insert data from gene_gse into mol_collection
-    # docs = []
-    #
-    # print("Inserting gene-oriented molecular collection {}...".format(mol_collection_name),
-    #       flush=True)
-    # for idx in range(len(gene_gse.index)):
-    #     if idx % 1000 == 0:
-    #         print("{} of {} rows processed...\r".format(idx, len(gene_gse.index)),
-    #               end="", flush=True)
-    #     gene_symbol = gene_gse.index[idx]
-    #     row = gene_gse.iloc[idx, :]
-    #     data = {}
-    #     for colidx, cell in enumerate(row):
-    #         key  = gene_gse.columns[colidx]
-    #         data[key] = float(cell)
-    #     doc = dict(id=gene_symbol, data=data, min=float(min(row)),
-    #                max=float(max(row)))
-    #     docs.append(doc)
-    #
-    # print("Done processing.", flush=True)
-    # print("Now inserting one big glob...")
-    # mol_collection.insert_many(docs, bypass_document_validation=True)
-    # print("Done.                       ")
 
 if __name__ == '__main__':
     PARSER = argparse.ArgumentParser(description="ingest GEO data")
