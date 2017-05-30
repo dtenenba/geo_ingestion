@@ -327,7 +327,6 @@ def ingest(accession, disease, force):
         gpl = gse.gpl
         print("processing series {} of {} ({})".format(idx+1, geoseries.series,
                                                        gpl))
-        # TODO - refactor these two into one:
         gse_df = get_data_frame(gse)
         write_molecular_collection(gse, gse_df, write_db, force)
         write_gpl_collection(gse, write_db)
