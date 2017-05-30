@@ -90,7 +90,16 @@ existing collections.
 Given the accession number and disease from
 the above example, this command will create the following collections:
 
-* `sarc_geo`  - Clinical collection (this collection name is not correct and will be fixed soon)
-* `geo_sarc_GSE12102_gene` - molecular collection indexed by gene symbol
-* `sarc_geo_GSE12102` - molecular collection indexed by probe ID (should probably be consistent with above)
+* `sarc_geo_meta`  - Clinical collection
+* `sarc_geo_GSE12102_gene` - molecular collection indexed by gene symbol
+* `sarc_geo_GSE12102` - molecular collection indexed by probe ID
 * `geo_GPL570` the platform used by this data set
+
+If a GEO series uses more than one platform (as does GSE16102),
+then
+there will be four molecular collections for the series:
+
+* `sarc_geo_GSE16102-GPL96`
+* `sarc_geo_GSE16102-GPL96_gene`
+* `sarc_geo_GSE16102-GPL3979`
+* `sarc_geo_GSE16102-GPL3979_gene`
