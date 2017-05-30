@@ -51,11 +51,17 @@ cp setup_env.sh.example setup_env.sh
 ```
 
 Then edit `setup_env.sh` to match your system.
-At present, you only `MONGO_WRITE_URL` is used,
+At present, only `MONGO_WRITE_URL` is used,
 and it defaults to `mongodb://localhost`, so if you are intending to write to the mongo DB
 instance running on your local system, and you
 have a `mongod` daemon running, you don't need
 to edit the file further.
+
+Then source the file with the following command:
+
+```bash
+. setup_env.sh
+```
 
 **NOTE**: The code currently writes to a database called `some_db`. This will soon
 be changed to the correct database name.
