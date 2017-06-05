@@ -150,6 +150,7 @@ def get_from_geo(accession, disease):
     return GEOSeries(raw_gse, disease)
 
 def flatten(input_):
+    """Replace lists of length 1 with scalars in a dictionary"""
     output = {}
     for key, value in input_.items():
         if isinstance(value, list) and len(value) == 1:
