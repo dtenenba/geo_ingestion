@@ -53,7 +53,7 @@ class Wrapper(object):
 
     def get_molecular_collection_name(self, probe_centric=True):
         """Gets the molecular collection name"""
-        accession = self._wrapped_obj.name
+        accession = self._wrapped_obj.metadata['geo_accession'][0]
         if len(self._wrapped_obj.gpls) == 1:
             if probe_centric:
                 return "{}_geo_{}".format(self.disease, accession)
@@ -149,10 +149,20 @@ def get_from_geo(accession, disease):
     raw_gse = GEOparse.get_GEO(geo=accession, destdir=geodir.name, silent=True)
     return GEOSeries(raw_gse, disease)
 
+def flatten(input_):
+    output = {}
+    for key, value in input_.items():
+        if isinstance(value, list) and len(value) == 1:
+            output[key] = value[0]
+        else:
+            output[key] = value
+    return output
+
+
 def write_metadata_to_clinical_coll(gse, disease, write_db):
     """Write metadata to clinical collection"""
     clinical_collection_name = "{}_geo_meta".format(disease)
-    metadata = gse.metadata
+    metadata = flatten(gse.metadata)
     clinical_collection = write_db[clinical_collection_name]
     print("Checking to see if main metadata record already exists in mongo...")
     already_exists = clinical_collection.find_one(metadata)
@@ -163,10 +173,10 @@ def write_metadata_to_clinical_coll(gse, disease, write_db):
               flush=True)
     for value in gse.gsms.values():
         print("Checking to see if metadata for {} already exists...".format(value.name))
-        already_exists = clinical_collection.find_one(value.metadata)
+        already_exists = clinical_collection.find_one(flatten(value.metadata))
         if already_exists is None:
             print("Record does not exist, inserting...")
-            clinical_collection.insert_one(value.metadata)
+            clinical_collection.insert_one(flatten(value.metadata))
 
 def write_molecular_collection(gse, gse_df, write_db, force, probe_centric=True):
     """Write to molecular collection"""
@@ -175,15 +185,15 @@ def write_molecular_collection(gse, gse_df, write_db, force, probe_centric=True)
     numrows = len(gse.gsms()[list(gse.gsms().keys())[0]].table)
     docs = []
     print("Inserting into {}....".format(mol_collection_name), flush=True)
-    for idx in range(len(gse_df.index)):
+    for idx in range(len(gse_df.index)): # for each row...
         if idx % 1000 == 0:
             print("Processed {} of {} rows...      \r".format(idx, numrows),
                   end="", flush=True)
         row = gse_df.iloc[idx, :]
         data = {}
         rowname = gse_df.index[idx]
-        for rowidx, cell in enumerate(row):
-            data[gse_df.index[rowidx]] = float(cell)
+        for col_idx, cell in enumerate(row): # for each column in row...
+            data[gse_df.columns[col_idx]] = float(cell)
         doc = dict(id=rowname, data=data, min=float(min(row)), max=float(max(row)))
         docs.append(doc)
     print("                              \r", flush=True)
