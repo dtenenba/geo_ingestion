@@ -103,7 +103,7 @@ the above example, this command will create the following collections:
 
 If a GEO series uses more than one platform (as does GSE16102),
 then
-there will be four molecular collections for the series:
+there will be two molecular collections for each platform used:
 
 * `sarc_geo_GSE16102-GPL96`
 * `sarc_geo_GSE16102-GPL96_gene`
