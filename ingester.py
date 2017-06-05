@@ -176,10 +176,11 @@ def write_metadata_to_clinical_coll(gse, disease, write_db):
         print("Record already exists, skipping...")
     for value in gse.gsms.values():
         print("Checking to see if metadata for {} already exists...".format(value.name))
-        already_exists = clinical_collection.find_one(flatten(value.metadata))
+        sample_metadata = flatten(value.metadata)
+        already_exists = clinical_collection.find_one(sample_metadata)
         if already_exists is None:
             print("Record does not exist, inserting...")
-            clinical_collection.insert_one(flatten(value.metadata))
+            clinical_collection.insert_one(sample_metadata)
         else:
             print("Record already exists, skipping...")
 
@@ -229,7 +230,6 @@ def write_gpl_collection(gse, write_db):
             del row['Gene Symbol']
             row['entrez'] = row['ENTREZ_GENE_ID']
             del row['ENTREZ_GENE_ID']
-            # gpl_collection.insert_one(row)
             docs.append(row)
 
         print("                              \r", flush=True)
@@ -307,7 +307,7 @@ def remove_duplicates(gse_df, gpl_table):
           flush=True)
     for idx, dupe in enumerate(dupes):
         if idx % 100 == 0:
-            print("{}           \r".format(idx), end="", flush="")
+            print("{}           \r".format(idx), end="", flush=True)
         keep_probe[dupe] = find_largest_variance(dupe)
     print("Done.                        ")
 
