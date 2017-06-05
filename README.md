@@ -35,7 +35,7 @@ need to run that command again, but you do need to switch to the
 virtual environment with:
 
 ```sh
-workon geo_ingestion
+workon geo_ingestion # tab-completion will help select the virtualenv
 ```
 
 ### Install dependencies
@@ -96,7 +96,7 @@ existing collections.
 Given the accession number and disease from
 the above example, this command will create the following collections:
 
-* `sarc_geo_meta`  - Clinical collection
+* `sarc_geo_meta`  - Clinical collection (metadata)
 * `sarc_geo_GSE12102_gene` - molecular collection indexed by gene symbol
 * `sarc_geo_GSE12102` - molecular collection indexed by probe ID
 * `geo_GPL570` the platform used by this data set
