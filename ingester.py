@@ -171,12 +171,16 @@ def write_metadata_to_clinical_coll(gse, disease, write_db):
         clinical_collection.insert_one(metadata)
         print("Inserting metadata into clinical collection (1)...",
               flush=True)
+    else:
+        print("Record already exists, skipping...")
     for value in gse.gsms.values():
         print("Checking to see if metadata for {} already exists...".format(value.name))
         already_exists = clinical_collection.find_one(flatten(value.metadata))
         if already_exists is None:
             print("Record does not exist, inserting...")
             clinical_collection.insert_one(flatten(value.metadata))
+        else:
+            print("Record already exists, skipping...")
 
 def write_molecular_collection(gse, gse_df, write_db, force, probe_centric=True):
     """Write to molecular collection"""
