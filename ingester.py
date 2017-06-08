@@ -334,7 +334,7 @@ def ingest(accession, disease, force):
     geoseries = get_from_geo(accession, disease)
 
     write_client = pymongo.MongoClient(os.getenv('MONGO_WRITE_URL'))
-    write_db = write_client.some_db # TODO FIXME database name
+    write_db = write_client.tcga
 
     write_metadata_to_clinical_coll(geoseries, disease, write_db)
 

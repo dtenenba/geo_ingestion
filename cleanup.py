@@ -18,6 +18,5 @@ if URL is None:
     sys.exit(1)
 
 CLIENT = pymongo.MongoClient(URL)
-# FIXME database name will change at some point
-RESULT = CLIENT.some_db.command("dropDatabase")
+RESULT = CLIENT.tcga.command("dropDatabase")
 print(RESULT)

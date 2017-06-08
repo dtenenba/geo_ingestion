@@ -63,8 +63,7 @@ Then source the file with the following command:
 . setup_env.sh
 ```
 
-**NOTE**: The code currently writes to a database called `some_db`. This will soon
-be changed to the correct database name.
+**NOTE**: The code writes to the `tcga` database.
 
 ### Run the code
 
