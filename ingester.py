@@ -159,11 +159,48 @@ def flatten(input_):
             output[key] = value
     return output
 
+def extract_characteristics(metadata):
+    """
+    Parse the values in the 'characteristics_ch1' metadata field
+    into top-level key-value pairs with the appropriate data types.
+    """
+
+    def cast(input_):
+        """Convert string to underlying type"""
+        try:
+            if "." in input_:
+                return float(input_)
+            elif input_.title() in ['True', 'False']:
+                return input_.title() == "True"
+            else:
+                return int(input_)
+        except ValueError:
+            return input_ # leave it as a string
+
+
+    if 'characteristics_ch1' in metadata:
+        char = metadata['characteristics_ch1']
+        if isinstance(char, list):
+            for idx, item in enumerate(char):
+                if ":" in item:
+                    segs = item.split(":")
+                    segs = [x.strip() for x in segs]
+                    if len(segs) == 2:
+                        key = segs[0]
+                        value = segs[1]
+                        newvalue = cast(value)
+                        print("Changing metadata to: {}:{}".format(key, newvalue))
+                        metadata['characteristics_ch1'][idx] = dict(key=key,
+                                                                    value=newvalue)
+    return metadata
+
+
 
 def write_metadata_to_clinical_coll(gse, disease, write_db):
     """Write metadata to clinical collection"""
     clinical_collection_name = "{}_geo_meta".format(disease)
     metadata = flatten(gse.metadata)
+    metadata = extract_characteristics(metadata)
     clinical_collection = write_db[clinical_collection_name]
     print("Checking to see if main metadata record already exists in mongo...")
     already_exists = clinical_collection.find_one(metadata)
@@ -177,6 +214,8 @@ def write_metadata_to_clinical_coll(gse, disease, write_db):
     for value in gse.gsms.values():
         print("Checking to see if metadata for {} already exists...".format(value.name))
         sample_metadata = flatten(value.metadata)
+        sample_metadata = metadata = extract_characteristics(sample_metadata)
+
         already_exists = clinical_collection.find_one(sample_metadata)
         if already_exists is None:
             print("Record does not exist, inserting...")
